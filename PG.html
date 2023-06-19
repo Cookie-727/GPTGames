@@ -3,6 +3,18 @@
 <head>
   <title>Shape Placer</title>
   <style>
+    body {
+      background: linear-gradient(135deg, purple, aqua);
+      background-size: 400% 400%;
+      animation: gradientAnimation 20s ease infinite;
+    }
+    
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     #canvas-container {
       position: relative;
       width: 800px;
@@ -218,6 +230,7 @@
   
   </script>
     <h5>Left click to choose object. Right click to delete object.</h5>
-    <h5><a href="index.html">Lobby</a></h5>
+    <h5><a href="index.html" style="color: lightgreen; font-size: 24px; text-decoration: none; text-shadow: 2px 2px 4px darkgreen;">Lobby</a></h5>
+
 </body>
 </html>
