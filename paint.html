@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Paint</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, lightgreen, lightblue);
+            background-size: 400% 400%;
+            animation: gradientAnimation 20s ease infinite;
+        }
+        
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        #canvas {
+            background-color: white;
+            border: 1px solid black;
+            cursor: crosshair;
+        }
+        
+        #controls {
+            margin-top: 10px;
+        }
+
+        
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <div id="controls">
+        <label for="brush-size">Brush Size:</label>
+        <input type="range" id="brush-size" min="1" max="20" value="5">
+        
+        <label for="brush-type">Brush Type:</label>
+        <select id="brush-type">
+            <option value="brush">Brush</option>
+            <option value="eraser">Eraser</option>
+        </select>
+        
+        <label for="smooth-brush">Smooth Brush:</label>
+        <input type="checkbox" id="smooth-brush">
+        
+        <label for="opacity">Opacity:</label>
+        <input type="range" id="opacity" min="0" max="1" step="0.1" value="1">
+        
+        <label for="color-picker">Color:</label>
+        <input type="color" id="color-picker">
+        
+        <button id="save-button">Save</button>
+        <button id="erase-button">Erase Everything</button>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const brushSizeInput = document.getElementById('brush-size');
+        const brushTypeSelect = document.getElementById('brush-type');
+        const smoothBrushCheckbox = document.getElementById('smooth-brush');
+        const opacityInput = document.getElementById('opacity');
+        const colorPicker = document.getElementById('color-picker');
+        const saveButton = document.getElementById('save-button');
+        const eraseButton = document.getElementById('erase-button');
+        
+        let isMouseDown = false;
+        let lastX = 0;
+        let lastY = 0;
+        
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        saveButton.addEventListener('click', saveCanvas);
+        eraseButton.addEventListener('click', eraseCanvas);
+        
+        function handleMouseDown(event) {
+            isMouseDown = true;
+            lastX = event.clientX - canvas.offsetLeft;
+            lastY = event.clientY - canvas.offsetTop;
+        }
+        
+        function handleMouseMove(event) {
+            if (!isMouseDown) {
+                return;
+            }
+            
+            const mouseX = event.clientX - canvas.offsetLeft;
+            const mouseY = event.clientY - canvas.offsetTop;
+            
+            const brushSize = brushSizeInput.value;
+            const brushType = brushTypeSelect.value;
+            const isSmoothBrush = smoothBrushCheckbox.checked;
+            const opacity = opacityInput.value;
+            const color = colorPicker.value;
+            
+            context.beginPath();
+            
+            if (brushType === 'eraser') {
+                context.strokeStyle = 'white';
+                context.lineWidth = brushSize * 2;
+            } else {
+                context.strokeStyle = color;
+                context.lineWidth = brushSize;
+            }
+            
+            if (isSmoothBrush) {
+                context.lineJoin = 'round';
+                context.lineCap = 'round';
+            } else {
+                context.lineJoin = 'miter';
+                context.lineCap = 'butt';
+            }
+            
+            context.globalAlpha = opacity;
+            
+            context.moveTo(lastX, lastY);
+            context.lineTo(mouseX, mouseY);
+            context.stroke();
+            
+            lastX = mouseX;
+            lastY = mouseY;
+        }
+        
+        function handleMouseUp() {
+            isMouseDown = false;
+        }
+        
+        function eraseCanvas() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        function saveCanvas() {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL();
+            link.download = 'my-artwork.png';
+            link.click();
+        }
+    </script>
+    <h5><a href="index.html">Lobby</a></h5>
+</body>
+</html>

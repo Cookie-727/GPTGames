@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Pixel Runner</title>
+    <style>
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background-color: black;
+            overflow: hidden;
+        }
+        
+        #player {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            bottom: 0;
+            left: 50px;
+        }
+        
+        .obstacle {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: green;
+        }
+
+        .coin {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: yellow;
+        }
+
+        #coin-count {
+            position: absolute;
+            top: 410px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 24px;
+        }
+
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 48px;
+            display: none;
+        }
+
+        #restart-button {
+            position: absolute;
+            top: 500px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: none;
+        }
+        body {
+            background: linear-gradient(45deg, red, yellow);
+            background-size: 400% 400%;
+            animation: gradientTransition 10s ease infinite;
+        }
+
+        @keyframes gradientTransition {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background-color: black;
+            overflow: hidden;
+        }
+        #coin-count {
+            position: absolute;
+            top: 410px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: black; /* Updated color to black */
+            font-size: 24px;
+        }
+        #score-meter {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 24px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="player"></div>
+        <div id="game-over">Game Over!</div>
+        <button id="restart-button">Restart</button>
+
+
+
+        <div id="coin-count">Coins: <span id="coins">0</span></div>
+
+        
+    </div>
+    <div id="coin-count">Coins: 0</div>
+    <div id="score-meter">Score: <span id="score">0</span></div>
+    <script>
+
+
+var coins = 0;
+var coinsElement = document.getElementById("coins");
+var speedBoostActive = false;
+
+
+
+
+
+
+        var score = 0;
+        var scoreElement = document.getElementById("score");
+
+        function increaseScore() {
+            score++;
+            scoreElement.innerText = score;
+        }
+
+        // Game code example
+        setInterval(increaseScore, 1000);
+
+
+
+
+        const gameContainer = document.getElementById("game-container");
+        const player = document.getElementById("player");
+        const coinCount = document.getElementById("coin-count");
+        const gameOverText = document.getElementById("game-over");
+        const restartButton = document.getElementById("restart-button");
+        let isMovingUp = false;
+        let isMovingDown = false;
+        let coinCollected = 0;
+        let gameRunning = true;
+
+        // Event listeners for moving up and down
+        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("keyup", handleKeyUp);
+        restartButton.addEventListener("click", restartGame);
+
+        function handleKeyDown(event) {
+            if (event.code === "KeyW") {
+                isMovingUp = true;
+            } else if (event.code === "KeyS") {
+                isMovingDown = true;
+            }
+        }
+
+        function handleKeyUp(event) {
+            if (event.code === "KeyW") {
+                isMovingUp = false;
+            } else if (event.code === "KeyS") {
+                isMovingDown = false;
+            }
+        }
+
+        // Game loop for player movement
+        setInterval(() => {
+            if (!gameRunning) {
+                return;
+            }
+
+            if (isMovingUp) {
+                const playerTop = player.offsetTop;
+                if (playerTop > 0) {
+                    player.style.top = playerTop - 10 + "px";
+                }
+            } else if (isMovingDown) {
+                const playerBottom = player.offsetTop + player.offsetHeight;
+                if (playerBottom < gameContainer.offsetHeight) {
+                    player.style.top = player.offsetTop + 10 + "px";
+                }
+            }
+
+            // Check collision with obstacles
+            const obstacles = document.getElementsByClassName("obstacle");
+            for (let i = 0; i < obstacles.length; i++) {
+                const obstacle = obstacles[i];
+                if (
+                    player.offsetLeft + player.offsetWidth > obstacle.offsetLeft &&
+                    player.offsetLeft < obstacle.offsetLeft + obstacle.offsetWidth &&
+                    player.offsetTop + player.offsetHeight > obstacle.offsetTop &&
+                    player.offsetTop < obstacle.offsetTop + obstacle.offsetHeight
+                ) {
+                    endGame();
+                    break;
+                }
+            }
+
+            // Check collision with coin
+            const coins = document.getElementsByClassName("coin");
+            for (let i = 0; i < coins.length; i++) {
+                const coin = coins[i];
+                if (
+                    player.offsetLeft + player.offsetWidth > coin.offsetLeft &&
+                    player.offsetLeft < coin.offsetLeft + coin.offsetWidth &&
+                    player.offsetTop + player.offsetHeight > coin.offsetTop &&
+                    player.offsetTop < coin.offsetTop + coin.offsetHeight
+                ) {
+                    coinCollected++;
+                    coinCount.innerText = "Coins: " + coinCollected;
+                    coin.remove();
+                }
+            }
+        }, 50);
+
+        // Obstacle and coin generation loop
+        setInterval(() => {
+            if (!gameRunning) {
+                return;
+            }
+
+            const obstacle = document.createElement("div");
+            obstacle.classList.add("obstacle");
+            obstacle.style.left = gameContainer.offsetWidth + "px";
+            obstacle.style.bottom = Math.random() * (gameContainer.offsetHeight - 50) + "px";
+            gameContainer.appendChild(obstacle);
+
+            // Move the obstacles from right to left
+            const obstacleMoveInterval = setInterval(() => {
+                if (!gameRunning) {
+                    clearInterval(obstacleMoveInterval);
+                    return;
+                }
+
+                obstacle.style.left = parseInt(obstacle.style.left) - 10 + "px";
+
+                // Check if obstacle is out of the game container
+                if (parseInt(obstacle.style.left) + obstacle.offsetWidth < 0) {
+                    clearInterval(obstacleMoveInterval);
+                    obstacle.remove();
+                }
+            }, 50);
+
+            // Generate a coin with a 20% chance
+            if (Math.random() < 0.2) {
+                const coin = document.createElement("div");
+                coin.classList.add("coin");
+                coin.style.left = gameContainer.offsetWidth + "px";
+                coin.style.bottom = Math.random() * (gameContainer.offsetHeight - 50) + "px";
+                gameContainer.appendChild(coin);
+
+                // Move the coin from right to left
+                const coinMoveInterval = setInterval(() => {
+                    if (!gameRunning) {
+                        clearInterval(coinMoveInterval);
+                        return;
+                    }
+
+                    coin.style.left = parseInt(coin.style.left) - 10 + "px";
+
+                    // Check if coin is out of the game container
+                    if (parseInt(coin.style.left) + coin.offsetWidth < 0) {
+                        clearInterval(coinMoveInterval);
+                        coin.remove();
+                    }
+                }, 50);
+            }
+        }, 1000);
+
+        function endGame() {
+            gameRunning = false;
+            gameOverText.style.display = "block";
+            restartButton.style.display = "block";
+        }
+
+        function restartGame() {
+            coinCollected = 0;
+            coinCount.innerText = "Coins: 0";
+            gameOverText.style.display = "none";
+            restartButton.style.display = "none";
+            gameRunning = true;
+            player.style.top = "0";
+            const obstacles = document.getElementsByClassName("obstacle");
+            const coins = document.getElementsByClassName("coin");
+            while (obstacles.length > 0) {
+                obstacles[0].remove();
+            }
+            while (coins.length > 0) {
+                coins[0].remove();
+            }
+        }
+    </script>
+ <h5><a href="index.html">Lobby</a></h5>
+</body>
+</html>

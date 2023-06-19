@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="ChatGPT Made Games - Enjoy playing our collection of games">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon.ico">
+    <title>ChatGPT Made Games</title>
+    <style>
+        body {
+            background: linear-gradient(90deg, orange, blue);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            animation: backgroundAnimation 10s linear infinite;
+        }
+
+        @keyframes backgroundAnimation {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+        }
+
+        hr {
+            border: none;
+            height: 2px;
+            margin: 20px auto;
+            width: 50%;
+            background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+            background-size: 400% 400%;
+            animation: rainbow 8s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h2 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        a:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgb(255, 0, 0);
+            animation: glowing 1.5s ease-in-out infinite;
+        }
+
+        @keyframes glowing {
+            0% { box-shadow: 0 0 5px rgb(255, 0, 0); }
+            50% { box-shadow: 0 0 20px rgb(255, 0, 0); }
+            100% { box-shadow: 0 0 5px rgb(255, 0, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ChatGPT Made Games</h1>
+        <hr>
+        <h2><a href="PG.html" title="Nice Little Game!">Shape Placer</a></h2>
+        <h2><a href="bhop.html" title="You can actually phase thru wall, but who cares.">BHOP Practice</a></h2>
+        <h2><a href="paint.html" title="This is actually useless, but eh...">Paint</a></h2>
+        <h2><a href="runner.html" title="An endless runner eh..">Endless Runner (WIP)</a></h2>
+    </div>
+</body>
+</html>

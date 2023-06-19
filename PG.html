@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Shape Placer</title>
+  <style>
+    #canvas-container {
+      position: relative;
+      width: 800px;
+      height: 600px;
+      border: 1px solid #000;
+    }
+
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    
+  </style>
+</head>
+<body>
+
+  <div id="canvas-container">
+    <canvas id="canvas" width="800" height="600"></canvas>
+  </div>
+  <div>
+    <h2>Shape Placer</h2>
+    <div>
+      <input type="radio" name="shape" value="triangle" checked>Triangle
+      <input type="radio" name="shape" value="square">Square
+      <input type="radio" name="shape" value="circle">Circle
+      <input type="radio" name="shape" value="frog">Frog
+      <input type="radio" name="shape" value="snail">Snail
+    </div>
+    <div>
+      <label for="gravity">Gravity:</label>
+      <input type="range" id="gravity" min="0" max="1" step="0.1" value="0.5">
+      <span id="gravity-value">0.5</span>
+    </div>
+    <div>
+      <button id="clear">Clear</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const Engine = Matter.Engine;
+      const Render = Matter.Render;
+      const World = Matter.World;
+      const Bodies = Matter.Bodies;
+      const Mouse = Matter.Mouse;
+      const MouseConstraint = Matter.MouseConstraint;
+      const Events = Matter.Events;
+
+      const container = document.getElementById("canvas-container");
+      const canvas = document.getElementById("canvas");
+      const engine = Engine.create();
+      const world = engine.world;
+
+      const render = Render.create({
+        element: container,
+        engine: engine,
+        canvas: canvas,
+        options: {
+          width: container.offsetWidth,
+          height: container.offsetHeight,
+          wireframes: false
+        }
+      });
+
+      const mouse = Mouse.create(canvas);
+      const mouseConstraint = MouseConstraint.create(engine, {
+        mouse: mouse
+      });
+
+      World.add(world, mouseConstraint);
+
+      let grabbedShape = null;
+
+      canvas.addEventListener("mousedown", function(event) {
+        if (!grabbedShape) {
+          const shapeType = document.querySelector('input[name="shape"]:checked').value;
+          const x = event.clientX - canvas.getBoundingClientRect().left;
+          const y = event.clientY - canvas.getBoundingClientRect().top;
+
+          let shape;
+          if (shapeType === "triangle") {
+            shape = Bodies.polygon(x, y, 3, 50, { render: { fillStyle: "red" } });
+          } else if (shapeType === "square") {
+            shape = Bodies.rectangle(x, y, 60, 60, { render: { fillStyle: "blue" } });
+          } else if (shapeType === "circle") {
+            shape = Bodies.circle(x, y, 30, { render: { fillStyle: "green" } });
+          } else if (shapeType === "frog") {
+            shape = Bodies.rectangle(x, y, 30, 30, { render: { sprite: { texture: "frog.png" } } });
+            shape.canJump = true; // Add canJump property
+            setInterval(() => {
+              if (Math.random() < 0.6 && shape.canJump) { // Adjust jump probability
+                const forceX = (Math.random() - 0.5) * 0.04; // Adjust jump force
+                const forceY = (Math.random() - 0.8) * 0.04; // Adjust jump force
+                Matter.Body.applyForce(shape, shape.position, { x: forceX, y: forceY });
+              }
+            }, 2000); // Adjust jump interval
+          } else if (shapeType === "snail") {
+            shape = Bodies.rectangle(x, y, 30, 30, { render: { sprite: { texture: "snail.png" } } });
+            shape.canJump = true; // Add canJump property
+            shape.direction = Math.random() < 0.5 ? -1 : 1; // Initial direction
+            shape.moving = true; // Initial moving state
+            setInterval(() => {
+              if (Math.random() < 0.2) { // Probability of changing direction
+                shape.direction *= -1; // Change direction
+              }
+              if (Math.random() < 0.3) { // Probability of pausing
+                shape.moving = false; // Pause movement
+              } else {
+                shape.moving = true; // Resume movement
+              }
+            }, 2000); // Direction change and pause interval
+            setInterval(() => {
+              if (shape.moving) { // Only move if not paused
+                const forceX = shape.direction * (Math.random() * 0.003); // Adjust movement speed
+                Matter.Body.applyForce(shape, shape.position, { x: forceX, y: 0 });
+              }
+            }, 100); // Adjust movement interval
+          }
+
+          const overlappingShape = checkOverlappingShapes(shape);
+          if (!overlappingShape) {
+            grabbedShape = shape; // Update grabbed shape
+            World.add(world, shape);
+          }
+        }
+      });
+
+      canvas.addEventListener("mouseup", function() {
+        grabbedShape = null; // Reset grabbed shape
+      });
+
+      canvas.addEventListener("contextmenu", function(event) {
+        event.preventDefault();
+        const x = event.clientX - canvas.getBoundingClientRect().left;
+        const y = event.clientY - canvas.getBoundingClientRect().top;
+        const clickedShape = findClickedShape(x, y);
+
+        if (clickedShape) {
+          World.remove(world, clickedShape);
+        }
+      });
+
+      function checkOverlappingShapes(shape) {
+        const bodies = Matter.Composite.allBodies(world);
+        for (let i = 0; i < bodies.length; i++) {
+          const body = bodies[i];
+          if (Matter.Bounds.overlaps(body.bounds, shape.bounds)) {
+            return body;
+          }
+        }
+        return null;
+      }
+
+      function findClickedShape(x, y) {
+        const bodies = Matter.Composite.allBodies(world);
+        for (let i = 0; i < bodies.length; i++) {
+          const body = bodies[i];
+          if (Matter.Bounds.contains(body.bounds, { x: x, y: y })) {
+            return body;
+          }
+        }
+        return null;
+      }
+
+      function updateGravity(value) {
+        engine.world.gravity.y = value;
+        document.getElementById("gravity-value").textContent = value;
+      }
+
+      document.getElementById("gravity").addEventListener("input", function(event) {
+        const value = parseFloat(event.target.value);
+        updateGravity(value);
+      });
+
+      document.getElementById("clear").addEventListener("click", function() {
+        const bodies = Matter.Composite.allBodies(world);
+        for (let i = 0; i < bodies.length; i++) {
+          const body = bodies[i];
+          if (!body.isStatic && body !== grabbedShape) {
+            World.remove(world, body);
+          }
+        }
+      });
+
+      const wallThickness = 20;
+      const walls = [
+        Bodies.rectangle(container.offsetWidth / 2, -wallThickness / 2, container.offsetWidth, wallThickness, { isStatic: true }),
+        Bodies.rectangle(container.offsetWidth / 2, container.offsetHeight + wallThickness / 2, container.offsetWidth, wallThickness, { isStatic: true }),
+        Bodies.rectangle(-wallThickness / 2, container.offsetHeight / 2, wallThickness, container.offsetHeight, { isStatic: true }),
+        Bodies.rectangle(container.offsetWidth + wallThickness / 2, container.offsetHeight / 2, wallThickness, container.offsetHeight, { isStatic: true })
+      ];
+      World.add(world, walls);
+
+      function checkGroundContact(event) {
+        const pairs = event.pairs;
+        for (let i = 0; i < pairs.length; i++) {
+          const pair = pairs[i];
+          if (pair.bodyA.canJump) {
+            pair.bodyA.canJump = true;
+          } else if (pair.bodyB.canJump) {
+            pair.bodyB.canJump = true;
+          }
+        }
+      }
+
+      Events.on(engine, "collisionEnd", checkGroundContact);
+
+      Engine.run(engine);
+      Render.run(render);
+    });
+  
+  </script>
+    <h5>Left click to choose object. Right click to delete object.</h5>
+    <h5><a href="index.html">Lobby</a></h5>
+</body>
+</html>
